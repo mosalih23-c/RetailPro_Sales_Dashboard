@@ -1,0 +1,169 @@
+// RetailPro Sales Dashboard - DAX measures
+// All measures live in the _Measures table of RetailPro_Dashboard.pbix
+
+// ===== Sales =====
+
+[Net Sales] =
+    CALCULATE ( SUM ( SalesModel[NetSales_SAR] ), SalesModel[EligibleOrders] = 1 )
+
+[Gross Profit] =
+    CALCULATE ( SUM ( SalesModel[GrossProfit_SAR] ), SalesModel[EligibleOrders] = 1 )
+
+[Profit Margin %] =
+    DIVIDE ( [Gross Profit], [Net Sales] )
+
+[Total Orders] =
+    CALCULATE ( COUNTROWS ( SalesModel ), SalesModel[EligibleOrders] = 1 )
+
+[Units Sold] =
+    CALCULATE ( SUM ( SalesModel[UnitsSold] ), SalesModel[EligibleOrders] = 1 )
+
+[Avg Order Value] =
+    DIVIDE ( [Net Sales], [Total Orders] )
+
+// ===== YoY =====
+
+[Net Sales LY] =
+    CALCULATE ( [Net Sales], SAMEPERIODLASTYEAR ( Calendar5[Date] ), REMOVEFILTERS ( Calendar5 ) )
+
+[Net Sales YoY %] =
+    VAR _ly = CALCULATE ( [Net Sales], SAMEPERIODLASTYEAR ( Calendar5[Date] ), REMOVEFILTERS ( Calendar5 ) )
+    RETURN IF ( HASONEVALUE ( Calendar5[Year] ) && NOT ISBLANK ( _ly ), DIVIDE ( [Net Sales] - _ly, _ly ) )
+
+// ===== Labels =====
+
+[Net Sales YoY Label] =
+    VAR p = [Net Sales YoY %]
+    RETURN IF ( ISBLANK ( p ), "Pick one year to compare", IF ( p >= 0, UNICHAR ( 9650 ), UNICHAR ( 9660 ) ) & " " & FORMAT ( ABS ( p ), "0.0%" ) & " vs LY" )
+
+// ===== Colors =====
+
+[Net Sales YoY Color] =
+    VAR p = [Net Sales YoY %]
+    RETURN IF ( ISBLANK ( p ), "#94A3B8", IF ( p >= 0, "#34D399", "#F87171" ) )
+
+// ===== YoY =====
+
+[Gross Profit YoY %] =
+    VAR _ly = CALCULATE ( [Gross Profit], SAMEPERIODLASTYEAR ( Calendar5[Date] ), REMOVEFILTERS ( Calendar5 ) )
+    RETURN IF ( HASONEVALUE ( Calendar5[Year] ) && NOT ISBLANK ( _ly ), DIVIDE ( [Gross Profit] - _ly, _ly ) )
+
+// ===== Labels =====
+
+[Gross Profit YoY Label] =
+    VAR p = [Gross Profit YoY %]
+    RETURN IF ( ISBLANK ( p ), "Pick one year to compare", IF ( p >= 0, UNICHAR ( 9650 ), UNICHAR ( 9660 ) ) & " " & FORMAT ( ABS ( p ), "0.0%" ) & " vs LY" )
+
+// ===== Colors =====
+
+[Gross Profit YoY Color] =
+    VAR p = [Gross Profit YoY %]
+    RETURN IF ( ISBLANK ( p ), "#94A3B8", IF ( p >= 0, "#34D399", "#F87171" ) )
+
+// ===== YoY =====
+
+[Margin YoY] =
+    VAR _ly = CALCULATE ( [Profit Margin %], SAMEPERIODLASTYEAR ( Calendar5[Date] ), REMOVEFILTERS ( Calendar5 ) )
+    RETURN IF ( HASONEVALUE ( Calendar5[Year] ) && NOT ISBLANK ( _ly ), ( [Profit Margin %] - _ly ) * 100 )
+
+// ===== Labels =====
+
+[Margin YoY Label] =
+    VAR p = [Margin YoY]
+    RETURN IF ( ISBLANK ( p ), "Pick one year to compare", IF ( p >= 0, UNICHAR ( 9650 ), UNICHAR ( 9660 ) ) & " " & FORMAT ( ABS ( p ), "0.0" ) & " pts vs LY" )
+
+// ===== Colors =====
+
+[Margin YoY Color] =
+    VAR p = [Margin YoY]
+    RETURN IF ( ISBLANK ( p ), "#94A3B8", IF ( p >= 0, "#34D399", "#F87171" ) )
+
+// ===== YoY =====
+
+[Orders YoY %] =
+    VAR _ly = CALCULATE ( [Total Orders], SAMEPERIODLASTYEAR ( Calendar5[Date] ), REMOVEFILTERS ( Calendar5 ) )
+    RETURN IF ( HASONEVALUE ( Calendar5[Year] ) && NOT ISBLANK ( _ly ), DIVIDE ( [Total Orders] - _ly, _ly ) )
+
+// ===== Labels =====
+
+[Orders YoY Label] =
+    VAR p = [Orders YoY %]
+    RETURN IF ( ISBLANK ( p ), "Pick one year to compare", IF ( p >= 0, UNICHAR ( 9650 ), UNICHAR ( 9660 ) ) & " " & FORMAT ( ABS ( p ), "0.0%" ) & " vs LY" )
+
+// ===== Colors =====
+
+[Orders YoY Color] =
+    VAR p = [Orders YoY %]
+    RETURN IF ( ISBLANK ( p ), "#94A3B8", IF ( p >= 0, "#34D399", "#F87171" ) )
+
+// ===== YoY =====
+
+[Units YoY %] =
+    VAR _ly = CALCULATE ( [Units Sold], SAMEPERIODLASTYEAR ( Calendar5[Date] ), REMOVEFILTERS ( Calendar5 ) )
+    RETURN IF ( HASONEVALUE ( Calendar5[Year] ) && NOT ISBLANK ( _ly ), DIVIDE ( [Units Sold] - _ly, _ly ) )
+
+// ===== Labels =====
+
+[Units YoY Label] =
+    VAR p = [Units YoY %]
+    RETURN IF ( ISBLANK ( p ), "Pick one year to compare", IF ( p >= 0, UNICHAR ( 9650 ), UNICHAR ( 9660 ) ) & " " & FORMAT ( ABS ( p ), "0.0%" ) & " vs LY" )
+
+// ===== Colors =====
+
+[Units YoY Color] =
+    VAR p = [Units YoY %]
+    RETURN IF ( ISBLANK ( p ), "#94A3B8", IF ( p >= 0, "#34D399", "#F87171" ) )
+
+// ===== Targets =====
+
+[Sales Target] =
+    SUM ( MonthlyTargets[SalesTarget_SAR] )
+
+[Target Achievement %] =
+    DIVIDE ( [Net Sales], [Sales Target] )
+
+[Target Gap] =
+    [Net Sales] - [Sales Target]
+
+// ===== Colors =====
+
+[Achievement Color] =
+    VAR a = [Target Achievement %]
+    RETURN IF ( ISBLANK ( a ), BLANK (), IF ( a >= 0.25, "#0E7490", IF ( a >= 0.20, "#6D28D9", "#BE185D" ) ) )
+
+// ===== Targets =====
+
+[Active Stores] =
+    CALCULATE ( DISTINCTCOUNT ( SalesModel[StoreID] ), SalesModel[EligibleOrders] = 1 )
+
+[Avg Sales per Store] =
+    DIVIDE ( [Net Sales], [Active Stores] )
+
+// ===== Customers =====
+
+[Customers] =
+    CALCULATE ( DISTINCTCOUNT ( SalesModel[CustomerID] ), SalesModel[EligibleOrders] = 1 )
+
+[Loyalty Members %] =
+    DIVIDE ( CALCULATE ( [Customers], Customers1[LoyaltyMember] = "Yes" ), [Customers] )
+
+// ===== Returns =====
+
+[Returned Units] =
+    CALCULATE ( SUM ( SalesModel[ReturnedUnits] ), SalesModel[EligibleOrders] = 1 )
+
+[Refund Amount] =
+    CALCULATE ( SUM ( SalesModel[RefundAmount_SAR] ), SalesModel[EligibleOrders] = 1 )
+
+[Return Rate %] =
+    DIVIDE ( [Returned Units], [Units Sold] )
+
+// ===== Labels =====
+
+[Return Rate Label] =
+    "Return rate  " & FORMAT ( [Return Rate %], "0.0%" )
+
+// ===== Returns =====
+
+[Return Count] =
+    COUNTROWS ( Returns4 )
